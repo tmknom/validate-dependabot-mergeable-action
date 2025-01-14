@@ -14,6 +14,11 @@ This action determines whether a Dependabot pull request can be merged based on 
   steps:
     - name: Validate Dependabot Mergeable
       uses: tmknom/validate-dependabot-mergeable-action@v0
+      with:
+        update-type: version-update:semver-minor
+        patch: true
+        minor: true
+        major: false
 ```
 
 ## Inputs
