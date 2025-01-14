@@ -1,23 +1,56 @@
-name: Rename me
+name: Validate Dependabot Mergeable
 description: |
-  Template repository for creating Composite Action with GitHub Actions.
+  This action determines whether a Dependabot pull request can be merged based on the specified update type.
 
   ## Usage
 
-  Write usage for your Composite Action.
-
   ```yaml
     steps:
-      - name: Template
-        uses: tmknom/template-composite-action@v0
+      - name: Validate Dependabot Mergeable
+        uses: tmknom/validate-dependabot-mergeable-action@v0
   ```
+
+inputs:
+  update-type:
+    required: true
+    description: The type of semantic versioning update. Acceptable values are `version-update:semver-patch`, `version-update:semver-minor`, and `version-update:semver-major`.
+  patch:
+    required: true
+    description: Whether to merge the patch version.
+  minor:
+    required: true
+    description: Whether to merge the minor version.
+  major:
+    required: true
+    description: Whether to merge the major version.
+
+outputs:
+  mergeable:
+    value: ${{ steps.check.outputs.mergeable }}
+    description: Indicates whether the update type is mergeable.
 
 runs:
   using: composite
 
   steps:
-    - name: Run
-      shell: bash
+    - name: Check
+      id: check
+      env:
+        PATCH: ${{ inputs.patch }}
+        MINOR: ${{ inputs.minor }}
+        MAJOR: ${{ inputs.major }}
+        UPDATE_TYPE: ${{ inputs.update-type }}
       run: |
         set -x
-        echo "Write steps"
+        mergeable=false
+        if [[ "${UPDATE_TYPE}" == "version-update:semver-patch" && "${PATCH}" == "true" ]]; then
+          mergeable=true
+        fi
+        if [[ "${UPDATE_TYPE}" == "version-update:semver-minor" && "${MINOR}" == "true" ]]; then
+          mergeable=true
+        fi
+        if [[ "${UPDATE_TYPE}" == "version-update:semver-major" && "${MAJOR}" == "true" ]]; then
+          mergeable=true
+        fi
+        echo "mergeable=${mergeable}" >> "${GITHUB_OUTPUT}"
+      shell: bash

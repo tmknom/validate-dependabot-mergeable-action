@@ -15,34 +15,72 @@ defaults:
     shell: bash
 
 jobs:
-  test:
-    name: Test
+  test-mergeable:
+    name: Test mergeable ${{ matrix.case }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read
+    strategy:
+      matrix:
+        include:
+          - case: patch
+            update-type: version-update:semver-patch
+          - case: minor
+            update-type: version-update:semver-minor
+          - case: major
+            update-type: version-update:semver-major
     steps:
       - name: Checkout
         uses: tmknom/checkout-action@v1
 
-      - name: Setup
+      - name: Exercise
+        id: exercise
+        uses: ./
+        with:
+          update-type: ${{ matrix.update-type }}
+          patch: true
+          minor: true
+          major: true
+
+      - name: Verify
+        env:
+          MERGEABLE: ${{ steps.exercise.outputs.mergeable }}
         run: |
           set -x
-          echo "Setup"
+          test "${MERGEABLE}" = "true"
+
+  test-not-mergeable:
+    name: Test not mergeable ${{ matrix.case }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - case: patch
+            update-type: version-update:semver-patch
+          - case: minor
+            update-type: version-update:semver-minor
+          - case: major
+            update-type: version-update:semver-major
+    steps:
+      - name: Checkout
+        uses: tmknom/checkout-action@v1
 
       - name: Exercise
         id: exercise
         uses: ./
+        with:
+          update-type: ${{ matrix.update-type }}
+          patch: false
+          minor: false
+          major: false
 
       - name: Verify
         env:
-          OUTCOME: ${{ steps.exercise.outcome }}
+          MERGEABLE: ${{ steps.exercise.outputs.mergeable }}
         run: |
           set -x
-          test "${OUTCOME}" = "success"
-
-      - name: Teardown
-        if: ${{ always() }}
-        run: |
-          set -x
-          echo "Teardown"
+          test "${MERGEABLE}" = "false"
