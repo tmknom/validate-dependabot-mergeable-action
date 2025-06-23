@@ -32,7 +32,7 @@ jobs:
             update-type: version-update:semver-major
     steps:
       - name: Checkout
-        uses: tmknom/checkout-action@v1
+        uses: tmknom/secure-checkout-action@v1
 
       - name: Exercise
         id: exercise
@@ -67,7 +67,7 @@ jobs:
             update-type: version-update:semver-major
     steps:
       - name: Checkout
-        uses: tmknom/checkout-action@v1
+        uses: tmknom/secure-checkout-action@v1
 
       - name: Exercise
         id: exercise
